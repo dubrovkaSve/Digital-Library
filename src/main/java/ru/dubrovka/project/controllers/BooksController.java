@@ -27,8 +27,15 @@ public class BooksController {
     }
 
     @GetMapping()
-    public String index(Model model) {
-        model.addAttribute("books", booksService.findAll());
+    public String index(
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "books_per_page", required = false) Integer booksPerPage,
+            Model model) {
+        if (page != null && booksPerPage != null) {
+            model.addAttribute("books", booksService.findAll(page, booksPerPage));
+        } else {
+            model.addAttribute("books", booksService.findAll());
+        }
 
         return "books/index";
     }
@@ -101,5 +108,18 @@ public class BooksController {
         return "redirect:/books/" + id;
     }
 
+    @GetMapping("/search")
+    public String search() {
+        return "books/search";
+    }
+
+    @PostMapping("/search")
+    public String searchBook(
+            @RequestParam("query") String query,
+            Model model) {
+        model.addAttribute("books", booksService.findByBookName(query));
+
+        return "books/search";
+    }
 }
 

@@ -5,6 +5,10 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.Objects;
 
 @Entity
 @Table(name = "Book")
@@ -33,20 +37,44 @@ public class Book {
     @JoinColumn(name = "person_id", referencedColumnName = "id")
     private Person owner;
 
+    @Column(name = "time_of_getting_book")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date timeOfGettingBook;
+
+    @Transient
+    private boolean exceedingPeriod;
+
     public Book() {}
 
-    public Book(String name, String author, int year) {
+    public Book(String name, String author, int year, Date timeOfGettingBook) {
         this.name = name;
         this.author = author;
         this.year = year;
+        this.timeOfGettingBook = timeOfGettingBook;
     }
 
     public void release() {
         this.setOwner(null);
+        this.setTimeOfGettingBook(null);
     }
 
     public void assign(Person selectedPerson) {
         this.setOwner(selectedPerson);
+        this.setTimeOfGettingBook(new Date());
+    }
+
+    public boolean IsPeriodExceeded() {
+        LocalDateTime localDateTimeOfStartReading = (this.getTimeOfGettingBook()).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime allowedPeriodOfReading = localDateTimeOfStartReading.plusDays(10);
+        LocalDateTime currentDateAsLocalDateTime = (new Date()).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+        if (currentDateAsLocalDateTime.isAfter(allowedPeriodOfReading)){
+            exceedingPeriod = true;
+        } else {
+            exceedingPeriod = false;
+        }
+
+        return exceedingPeriod;
     }
 
     public int getId() {
@@ -89,6 +117,24 @@ public class Book {
         this.owner = owner;
     }
 
+    public Date getTimeOfGettingBook() {
+
+        return timeOfGettingBook;
+    }
+
+    public void setTimeOfGettingBook(Date timeOfGettingBook) {
+
+        this.timeOfGettingBook = timeOfGettingBook;
+    }
+
+    public boolean isExceedingPeriod() {
+        return exceedingPeriod;
+    }
+
+    public void setExceedingPeriod(boolean exceedingPeriod) {
+        this.exceedingPeriod = exceedingPeriod;
+    }
+
     @Override
     public String toString() {
         return "Book{" +
@@ -97,6 +143,21 @@ public class Book {
                 ", author='" + author + '\'' +
                 ", year=" + year +
                 ", owner=" + owner +
+                ", timeOfGettingBook=" + timeOfGettingBook +
+                ", exceedingPeriod=" + exceedingPeriod +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Book book = (Book) o;
+        return id == book.id && year == book.year && name.equals(book.name) && Objects.equals(author, book.author) && Objects.equals(owner, book.owner);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, author, year, owner);
     }
 }

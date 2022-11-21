@@ -17,7 +17,8 @@
     <b>Книги:</b>
     <br/>
     <table th:each="book : ${books}">
-        <tr th:text="${book.getName() + ', ' + book.getAuthor() + ', ' + book.getYear()}">book</tr>
+       <div style="color:red" th:if="${book.IsPeriodExceeded()}" th:text="${book.getName() + ',' + book.getAuthor() + ',' + book.getYear()}">book</div>
+        <div th:if="${!book.IsPeriodExceeded()}" th:text="${book.getName() + ',' + book.getAuthor() + ',' + book.getYear()}"></div>
     </table>
     <hr/>
 </div>

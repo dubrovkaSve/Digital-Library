@@ -1,13 +1,15 @@
 package ru.dubrovka.project.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.dubrovka.project.models.Book;
 import ru.dubrovka.project.models.Person;
 import ru.dubrovka.project.repositories.BooksRepository;
 import ru.dubrovka.project.repositories.PeopleRepository;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -24,13 +26,22 @@ public class BooksService {
     }
 
     public List<Book> findAll() {
-        return booksRepository.findAll();
+
+        return booksRepository.findAll(Sort.by("year"));
+    }
+
+    public Page<Book> findAll(Integer page, Integer booksPerPage) {
+        return booksRepository.findAll(PageRequest.of(page, booksPerPage, Sort.by("year")));
     }
 
     public Book findOne(int id) {
         Optional<Book> foundBook = booksRepository.findById(id);
 
         return foundBook.orElse(null);
+    }
+
+    public List<Book> findByBookName(String query) {
+        return booksRepository.findByNameStartingWithIgnoringCase(query);
     }
 
     @Transactional
@@ -40,19 +51,11 @@ public class BooksService {
 
     @Transactional
     public void update(int id, Book updatedBook) {
+        Book bookToBeUpdated = booksRepository.findById(id).get();
         updatedBook.setId(id);
+        updatedBook.setOwner(bookToBeUpdated.getOwner());
+
         booksRepository.save(updatedBook);
-    }
-
-    @Transactional
-    public void updateBookedPerson(int id, int personId) {
-        Book foundBook = findOne(id);
-        Optional<Person> foundedPerson = peopleRepository.findById(personId);
-        Person person = foundedPerson.get();
-
-        foundBook.setOwner(person);
-
-        booksRepository.save(foundBook);
     }
 
     @Transactional
@@ -61,10 +64,12 @@ public class BooksService {
     }
 
     public Optional<Person> getBookOwner(int id) {
+
         return peopleRepository.findByBooksId(id);
     }
 
     public List<Book> findByOwner(Person person) {
+
         return booksRepository.findByOwner(person);
     }
 
@@ -83,5 +88,4 @@ public class BooksService {
 
         booksRepository.save(book);
     }
-
 }

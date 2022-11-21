@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.dubrovka.project.models.Person;
 import ru.dubrovka.project.repositories.PeopleRepository;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +29,7 @@ public class PeopleService {
     }
 
     public Optional<Person> findByName(String name) {
+
         return peopleRepository.findByName(name);
     }
 
